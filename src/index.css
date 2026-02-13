@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --luxury-gold: #D4AF37;
+  --luxury-cream: #F5F5DC;
+  --luxury-beige: #E5D3B3;
+  --luxury-charcoal: #333333;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--luxury-cream);
+  color: var(--luxury-charcoal);
+}
+
+h1,
+h2,
+h3,
+h4,
+.serif {
+  font-family: 'Playfair Display', serif;
+}
+
+.gold-text {
+  color: var(--luxury-gold);
+}
+
+.gold-bg {
+  background-color: var(--luxury-gold);
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
