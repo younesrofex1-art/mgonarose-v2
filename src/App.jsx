@@ -32,7 +32,7 @@ const Navbar = ({ t, language, setLanguage, onNavClick, isSearchOpen, setIsSearc
                     <img
                         src="/logo.png"
                         alt="MgonaRose"
-                        className="w-[110px] md:w-[160px] h-auto object-contain cursor-pointer transition-transform duration-500 hover:scale-105 brightness-0"
+                        className={`w-[110px] md:w-[160px] h-auto object-contain cursor-pointer transition-all duration-500 hover:scale-105 ${isScrolled ? 'brightness-0' : 'brightness-0 invert'}`}
                         onClick={() => onNavClick('hero')}
                     />
                 </div>
