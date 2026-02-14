@@ -1,377 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Search, Menu, X, Check, Instagram, Facebook, Phone, Leaf, Rabbit, Droplets, Star, Sparkles, Sun, Heart, Mail, MessageCircle, CheckCircle, Globe, Shield } from 'lucide-react';
-import CheckoutModal from './components/CheckoutModal';
+import { Instagram, Facebook, Phone, Mail, MessageCircle, X, CheckCircle, Globe, Shield, Star, Leaf, Rabbit, Droplets, Check } from 'lucide-react';
 import { translations } from './translations';
 
-const Navbar = ({ t, language, setLanguage, onNavClick, isSearchOpen, setIsSearchOpen, isScrolled, cartCount, setIsCartOpen, setIsMobileMenuOpen }) => {
-    const textColorClass = isScrolled ? 'text-black' : 'text-white';
-    const bgColorClass = isScrolled ? 'bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)]' : 'bg-transparent';
+// Components
+import Navbar from './components/Navbar';
+const CartDrawer = lazy(() => import('./components/CartDrawer'));
+const SearchModal = lazy(() => import('./components/SearchModal'));
+const MobileMenu = lazy(() => import('./components/MobileMenu'));
+const CheckoutModal = lazy(() => import('./components/CheckoutModal'));
+const { LegalView, ShippingPolicy, RefundPolicy, PrivacyPolicy } = lazy(() => import('./components/Legal'));
 
-    return (
-        <nav className={`fixed top-0 left-0 w-full z-50 h-[55px] md:h-[65px] transition-all duration-300 ease-in-out ${bgColorClass}`}>
-            <div className="max-w-[1800px] mx-auto px-[15px] md:px-12 h-full flex items-center justify-between relative">
-                {/* Mobile Menu Icon - Far Left */}
-                <div className="flex md:hidden items-center flex-1">
-                    <button
-                        onClick={() => setIsMobileMenuOpen(true)}
-                        className={`p-3 -ml-3 transition-all duration-300 ${textColorClass} hover:bg-black/5 rounded-full`}
-                    >
-                        <Menu className="w-6 h-6" strokeWidth={1.5} />
-                    </button>
-                </div>
-
-                {/* Desktop Menu - Left */}
-                <div className="hidden md:flex items-center gap-10 flex-1">
-                    <button onClick={() => onNavClick('products')} className={`${textColorClass} hover:text-luxury-gold transition-all duration-300 font-sans text-xs tracking-[0.2em] font-medium uppercase`}>{t.nav.shop}</button>
-                    <button onClick={() => onNavClick('story')} className={`${textColorClass} hover:text-luxury-gold transition-all duration-300 font-sans text-xs tracking-[0.2em] font-medium uppercase`}>{t.nav.story}</button>
-                </div>
-
-                {/* Logo - Center */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center h-full py-1">
-                    <img
-                        src="/logo.png"
-                        alt="MgonaRose"
-                        className={`w-[110px] md:w-[160px] h-auto object-contain cursor-pointer transition-all duration-500 hover:scale-105 ${isScrolled ? 'brightness-0' : 'brightness-0 invert'}`}
-                        onClick={() => onNavClick('hero')}
-                    />
-                </div>
-
-                {/* Right Side Icons */}
-                <div className="flex items-center gap-1 md:gap-8 flex-1 justify-end h-full">
-                    {/* Language Switcher - Desktop Only */}
-                    <div className="hidden md:flex items-center gap-4 border-r border-gray-200 pr-8 mr-2 h-6">
-                        <button onClick={() => setLanguage('en')} className={`text-[10px] tracking-widest uppercase transition-colors ${language === 'en' ? 'text-luxury-gold font-bold' : textColorClass + ' opacity-50'}`}>EN</button>
-                        <button onClick={() => setLanguage('fr')} className={`text-[10px] tracking-widest uppercase transition-colors ${language === 'fr' ? 'text-luxury-gold font-bold' : textColorClass + ' opacity-50'}`}>FR</button>
-                    </div>
-
-                    {/* Search Icon */}
-                    <button
-                        onClick={() => setIsSearchOpen(true)}
-                        className={`transition-all duration-300 cursor-pointer group p-3 -mr-2 md:p-2 hover:bg-black/5 rounded-full ${textColorClass}`}
-                    >
-                        <Search className="w-5 h-5 md:w-5 md:h-5" strokeWidth={1.5} />
-                    </button>
-
-                    {/* Cart Icon with Badge */}
-                    <button
-                        onClick={() => setIsCartOpen(true)}
-                        className={`transition-all duration-300 cursor-pointer group p-3 -mr-2 md:p-2 hover:bg-black/5 rounded-full relative ${textColorClass}`}
-                    >
-                        <ShoppingCart className="w-5 h-5 md:w-5 md:h-5" strokeWidth={1.5} />
-                        {cartCount > 0 && (
-                            <motion.span
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute top-2 right-2 md:-top-1 md:-right-1 bg-[#D4AF37] text-white text-[9px] md:text-[10px] w-3.5 h-3.5 md:w-4 md:h-4 rounded-full flex items-center justify-center font-bold shadow-sm"
-                            >
-                                {cartCount}
-                            </motion.span>
-                        )}
-                    </button>
-                </div>
-            </div>
-        </nav>
-    );
-};
-
-const CartDrawer = ({ isOpen, onClose, cart, t, updateQuantity, removeFromCart, onCheckout }) => {
-    const total = cart.reduce((acc, item) => {
-        const price = parseFloat(item.price.replace(/[^\d.]/g, ''));
-        return acc + (price * item.quantity);
-    }, 0);
-
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[250]"
-                    />
-                    <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed top-0 right-0 h-full w-[85%] md:w-[450px] bg-white z-[260] shadow-2xl flex flex-col"
-                    >
-                        <div className="p-8 flex justify-between items-center border-b border-gray-100">
-                            <h2 className="text-2xl serif text-black">{t.cart.title}</h2>
-                            <button onClick={onClose} className="p-2 hover:rotate-90 transition-transform duration-300">
-                                <X className="w-6 h-6 text-black" strokeWidth={1.5} />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-8">
-                            {cart.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-center space-y-8">
-                                    <div className="w-20 h-20 bg-luxury-cream/10 rounded-full flex items-center justify-center">
-                                        <ShoppingCart className="w-10 h-10 text-luxury-gold/30" strokeWidth={1} />
-                                    </div>
-                                    <p className="text-gray-400 font-sans italic">{t.cart.empty}</p>
-                                    <button
-                                        onClick={onClose}
-                                        className="bg-black text-white px-8 py-3 rounded-full text-xs uppercase tracking-widest hover:bg-luxury-gold transition-colors"
-                                    >
-                                        {t.cart.startShopping}
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="space-y-8">
-                                    {cart.map((item) => (
-                                        <div key={item.id} className="flex gap-6">
-                                            <div className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0">
-                                                <img
-                                                    src={item.id === 'gold' ? './product1.png' : item.id === 'classic' ? './product2.png' : item.id === 'noir' ? './product3.png' : './offer_pack.png'}
-                                                    alt={item.title}
-                                                    className="w-full h-full object-contain p-2"
-                                                />
-                                            </div>
-                                            <div className="flex-1 space-y-2">
-                                                <div className="flex justify-between items-start">
-                                                    <h4 className="text-sm font-bold text-black font-sans leading-tight pr-4">{item.title}</h4>
-                                                    <button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-black">
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                                <div className="text-[#D4AF37] font-bold font-sans text-sm">{item.price}</div>
-                                                <div className="flex items-center space-x-4 pt-2">
-                                                    <div className="flex items-center border border-gray-100 rounded-full px-3 py-1 scale-90 origin-left">
-                                                        <button onClick={() => updateQuantity(item.id, -1)} className="text-gray-400 hover:text-black px-1">-</button>
-                                                        <span className="text-[12px] font-bold font-sans w-6 text-center">{item.quantity}</span>
-                                                        <button onClick={() => updateQuantity(item.id, 1)} className="text-gray-400 hover:text-black px-1">+</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {cart.length > 0 && (
-                            <div className="p-8 border-t border-gray-100 bg-gray-50 space-y-6">
-                                <div className="flex justify-between items-center text-sm font-bold uppercase tracking-widest text-[#D4AF37]">
-                                    <span>{t.cart.total}</span>
-                                    <span>{total.toFixed(2)} dh</span>
-                                </div>
-                                <button
-                                    onClick={onCheckout}
-                                    className="w-full bg-[#D4AF37] text-white py-5 rounded-full text-xs font-bold uppercase tracking-[0.2em] hover:bg-black transition-all duration-300 shadow-lg"
-                                >
-                                    {t.cart.checkout}
-                                </button>
-                            </div>
-                        )}
-                    </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-    );
-};
-const MobileMenu = ({ isMobileMenuOpen, setIsMobileMenuOpen, handleNavClick, t }) => {
-    return (
-        <AnimatePresence>
-            {isMobileMenuOpen && (
-                <>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[250]"
-                    />
-                    <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed top-0 right-0 h-full w-full md:w-[450px] bg-white z-[300] shadow-2xl flex flex-col p-12 overflow-y-auto"
-                    >
-                        <div className="flex justify-end mb-16">
-                            <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:rotate-90 transition-transform duration-300">
-                                <X className="w-8 h-8 text-black" strokeWidth={1} />
-                            </button>
-                        </div>
-                        <nav className="flex flex-col space-y-8">
-                            {[
-                                { label: t.nav.story, action: () => handleNavClick('story') },
-                                { label: t.howToUse.menuLabel, action: () => handleNavClick('how-to-use') },
-                                { label: t.benefits.menuLabel, action: () => handleNavClick('benefits') },
-                                { label: t.faq.title, action: () => handleNavClick('faq') },
-                                { label: t.nav.contact, action: () => handleNavClick('footer') }
-                            ].map((item, index) => (
-                                <motion.button
-                                    key={index}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    onClick={item.action}
-                                    className="group flex items-center space-x-6 text-left"
-                                >
-                                    <span className="text-[10px] text-gray-300 font-sans tracking-widest">0{index + 1}</span>
-                                    <span className="text-3xl md:text-4xl font-serif text-black group-hover:text-luxury-gold transition-all duration-300 hover:pl-4">{item.label}</span>
-                                </motion.button>
-                            ))}
-                        </nav>
-                        <div className="mt-auto pt-20">
-                            <div className="h-px w-12 bg-luxury-gold mb-8" />
-                            <div className="space-y-6">
-                                <div className="flex space-x-6">
-                                    <a href="https://www.instagram.com/mgonarose/" className="text-black hover:text-luxury-gold transition-colors"><Instagram className="w-5 h-5" /></a>
-                                    <a href="https://www.facebook.com/saudicodksa/" className="text-black hover:text-luxury-gold transition-colors"><Facebook className="w-5 h-5" /></a>
-                                    <a href="https://wa.me/212717573727" className="text-black hover:text-luxury-gold transition-colors"><MessageCircle className="w-5 h-5" /></a>
-                                </div>
-                                <p className="text-[12px] text-gray-400 font-sans">{t.footer.story}</p>
-                            </div>
-                        </div>
-                    </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-    );
-};
-
-const SearchModal = ({ isOpen, onClose, t, searchQuery, setSearchQuery, productData }) => {
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[600] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
-                >
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative w-[92%] md:w-[75%] max-w-[900px] bg-white rounded-[20px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden"
-                    >
-                        {/* Top Bar */}
-                        <div className="flex items-center px-6 md:px-10 py-6 border-b border-gray-100">
-                            <Search className="w-5 h-5 text-luxury-gold mr-4" strokeWidth={2} />
-                            <input
-                                autoFocus
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder={t.nav.searchPlaceholder || "Discover your natural radiance..."}
-                                className="flex-1 bg-transparent text-black text-lg md:text-xl italic font-serif outline-none placeholder:text-gray-300"
-                            />
-                            <button
-                                onClick={onClose}
-                                className="ml-4 p-2 text-gray-400 hover:text-black hover:rotate-90 transition-all duration-300"
-                            >
-                                <X className="w-5 h-5" strokeWidth={1.5} />
-                            </button>
-                        </div>
-
-                        {/* Content Area */}
-                        <div className="p-6 md:p-10 bg-[#FAFAFA]/50">
-                            <div className="mb-8">
-                                <h3 className="text-[10px] font-bold tracking-[0.4em] text-gray-400 uppercase text-center">
-                                    {t.shop.title || "YOUR ESSENTIAL RITUAL"}
-                                </h3>
-                            </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-                                {Object.entries(productData).map(([id, product]) => (
-                                    <div key={id} className="group cursor-pointer">
-                                        <div className="relative aspect-square rounded-[12px] bg-white border border-gray-100 overflow-hidden mb-4 p-4 flex items-center justify-center transition-all duration-500 hover:border-luxury-gold/30 hover:shadow-lg">
-                                            <img
-                                                src={product.img}
-                                                alt={product.title}
-                                                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
-                                            />
-                                        </div>
-                                        <div className="space-y-1 text-center">
-                                            <h4 className="text-[10px] md:text-[11px] font-sans font-bold text-black/80 uppercase tracking-widest leading-snug h-[2.8em] flex items-center justify-center">
-                                                {product.title}
-                                            </h4>
-                                            <div className="flex items-center justify-center space-x-1">
-                                                <span className="text-[12px] md:text-[13px] font-sans font-extrabold text-[#D4AF37]">
-                                                    {product.price.split(' ')[0]}
-                                                </span>
-                                                <span className="text-[9px] md:text-[10px] font-sans font-bold text-[#D4AF37] opacity-80 uppercase tracking-tighter">
-                                                    {product.price.split(' ')[1]}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Aesthetic Bottom Accents */}
-                        <div className="h-1 bg-gradient-to-r from-transparent via-luxury-gold/20 to-transparent" />
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
-};
-
-const LegalView = ({ title, children, onBack, t }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        className="pt-32 pb-20 px-6 md:px-12 bg-white min-h-screen"
-    >
-        <div className="max-w-4xl mx-auto">
-            <button
-                onClick={onBack}
-                className="flex items-center space-x-2 text-luxury-gold hover:opacity-70 transition-opacity mb-12 uppercase tracking-widest text-xs font-bold"
-            >
-                <span>←</span>
-                <span>{t.legal.back}</span>
-            </button>
-            <h1 className="text-4xl md:text-5xl font-serif text-black mb-16 leading-tight underline decoration-luxury-gold/30 underline-offset-8">{title}</h1>
-            <div className="prose prose-luxury max-w-none text-left">
-                {children}
-            </div>
-        </div>
-    </motion.div>
-);
-
-const ShippingPolicy = ({ t }) => (
-    <div className="space-y-12">
-        {t.legal.shipping.sections.map((section, idx) => (
-            <div key={idx} className="space-y-4">
-                <h2 className="text-xl font-bold text-black uppercase tracking-widest">{section.t}</h2>
-                <div className="text-gray-600 leading-relaxed font-sans" dangerouslySetInnerHTML={{ __html: section.d }} />
-            </div>
-        ))}
-    </div>
-);
-
-const RefundPolicy = ({ t }) => (
-    <div className="space-y-12">
-        {t.legal.refund.sections.map((section, idx) => (
-            <div key={idx} className="space-y-4">
-                <h2 className="text-xl font-bold text-black uppercase tracking-widest">{section.t}</h2>
-                <div className="text-gray-600 leading-relaxed font-sans" dangerouslySetInnerHTML={{ __html: section.d }} />
-            </div>
-        ))}
-    </div>
-);
-
-const PrivacyPolicy = ({ t }) => (
-    <div className="space-y-12">
-        {t.legal.privacy.sections.map((section, idx) => (
-            <div key={idx} className="space-y-4">
-                <h2 className="text-xl font-bold text-black uppercase tracking-widest">{section.t}</h2>
-                <div className="text-gray-600 leading-relaxed font-sans" dangerouslySetInnerHTML={{ __html: section.d }} />
-            </div>
-        ))}
-    </div>
-);
 
 const App = () => {
     const [language, setLanguage] = useState('en');
@@ -504,7 +143,13 @@ const App = () => {
                 <section className="relative h-screen flex items-center justify-center overflow-hidden">
                     <picture className="absolute inset-0 z-0">
                         <source srcSet="/photo hero mobile.png" media="(max-width: 768px)" />
-                        <img src="/hero_new.jpg.jpeg" alt="Hero Background" className="w-full h-full object-cover" />
+                        <img
+                            src="/hero_new.jpg.jpeg"
+                            alt="Hero Background"
+                            className="w-full h-full object-cover"
+                            fetchpriority="high"
+                            loading="eager"
+                        />
                     </picture>
                     <div className="absolute top-0 left-0 w-full h-1/4 z-10 pointer-events-none"
                         style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)' }} />
@@ -825,7 +470,7 @@ const App = () => {
                     <div className="max-w-7xl mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 mb-20 text-left">
                             <div className="space-y-8">
-                                <img src="/logo.png" className="h-20 w-auto brightness-0" alt="MgonaRose" />
+                                <img src="/logo.png" className="h-20 w-auto brightness-0" alt="MgonaRose" loading="lazy" />
                                 <p className="text-gray-400 text-sm leading-relaxed font-sans max-w-xs">{t.footer.story}</p>
                             </div>
                             <div>
@@ -890,24 +535,25 @@ const App = () => {
                 setIsCartOpen={setIsCartOpen}
                 setIsMobileMenuOpen={setIsMobileMenuOpen}
             />
-            <SearchModal
-                isOpen={isSearchOpen}
-                onClose={() => setIsSearchOpen(false)}
-                t={t}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                productData={productData}
-            />
-            <CartDrawer
-                isOpen={isCartOpen}
-                onClose={() => setIsCartOpen(false)}
-                cart={cart}
-                t={t}
-                updateQuantity={updateQuantity}
-                removeFromCart={removeFromCart}
-                onCheckout={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}
-            />
-            <main>
+            <Suspense fallback={null}>
+                <SearchModal
+                    isOpen={isSearchOpen}
+                    onClose={() => setIsSearchOpen(false)}
+                    t={t}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    productData={productData}
+                />
+                <CartDrawer
+                    isOpen={isCartOpen}
+                    onClose={() => setIsCartOpen(false)}
+                    cart={cart}
+                    t={t}
+                    updateQuantity={updateQuantity}
+                    removeFromCart={removeFromCart}
+                    onCheckout={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }}
+                />
+            </Suspense>            <main>
                 <AnimatePresence mode="wait">
                     {renderView()}
                 </AnimatePresence>
@@ -1003,23 +649,23 @@ const App = () => {
                 )}
             </AnimatePresence>
 
-            <MobileMenu
-                isMobileMenuOpen={isMobileMenuOpen}
-                setIsMobileMenuOpen={setIsMobileMenuOpen}
-                handleNavClick={handleNavClick}
-                t={t}
-            />
-
-            {isCheckoutOpen && (
-                <CheckoutModal
-                    isOpen={isCheckoutOpen}
-                    onClose={() => setIsCheckoutOpen(false)}
-                    selectedProduct={productData[selectedBundle]}
+            <Suspense fallback={null}>
+                <MobileMenu
+                    isMobileMenuOpen={isMobileMenuOpen}
+                    setIsMobileMenuOpen={setIsMobileMenuOpen}
+                    handleNavClick={handleNavClick}
                     t={t}
-                    language={language}
                 />
-            )}
-        </div>
+                {isCheckoutOpen && (
+                    <CheckoutModal
+                        isOpen={isCheckoutOpen}
+                        onClose={() => setIsCheckoutOpen(false)}
+                        selectedProduct={productData[selectedBundle]}
+                        t={t}
+                        language={language}
+                    />
+                )}
+            </Suspense>        </div>
     );
 };
 
